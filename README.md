@@ -110,7 +110,7 @@ report the estimation error. The camera image carries simulated noise: RGB σ = 
 
 1. **Segmentation.** Pixels are classified in HSV: fruit (hue 21–34), leaves (hue 36–90) and orange leaf tips (hue 4–18,
    high saturation). Leaf-coloured pixels on the robot's own carrier are removed.
-2. 2. **Back-projection.** A classified pixel $`(u, v)`$ with depth $`z`$ becomes the world point
+2. **Back-projection.** A classified pixel $`(u, v)`$ with depth $`z`$ becomes the world point
    $`P = R_c\,z\,K^{-1}\,[\,u,\ v,\ 1\,]^{\top} + t_c`$,
    with camera intrinsics $`K`$ and the calibrated camera pose $`(R_c, t_c)`$. Points are voxelised (12 mm) and clustered by
    single linkage (radius 35 mm, at least 25 points).
