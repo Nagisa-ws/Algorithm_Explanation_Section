@@ -28,13 +28,13 @@ positions), orange blocks only in Stage B (camera perception, safety layers and 
 
 ### 1.1 Task
 
-Let $p \in \mathbb{R}^3$ be the TCP position, $q \in \mathbb{R}^6$ the joint angles, $E$ the enter point, $X$ the end
-point and $\mathcal{O}=\{(p_i, r_i)\}$ a set of obstacles (points or leaf segments with radius $r_i$). The common task
+Let $`p \in \mathbb{R}^3`$ be the TCP position, $`q \in \mathbb{R}^6`$ the joint angles, $`E`$ the enter point, $`X`$ the end
+point and $`\mathcal{O}=\lbrace (p_i, r_i) \rbrace`$ a set of obstacles (points or leaf segments with radius $`r_i`$). The common task
 is
 
-1. move from the home posture to $E$ without contact,
-2. follow the segment $\overline{EX}$ with a small cross-track error until $\lVert p - X\rVert$ is below a threshold,
-3. keep the whole arm body (not only the TCP) clear of $\mathcal{O}$, of itself and of the floor.
+1. move from the home posture to $`E`$ without contact,
+2. follow the segment $`\overline{EX}`$ with a small cross-track error until $`\lVert p - X\rVert`$ is below a threshold,
+3. keep the whole arm body (not only the TCP) clear of $`\mathcal{O}`$, of itself and of the floor.
 
 In Stage B the end point lies on the fruit, and the line is followed by a manipulation sequence (grip → detach → carry →
 release). Success then means the fruit lies in the crate and the arm is back in its default posture.
@@ -110,16 +110,16 @@ report the estimation error. The camera image carries simulated noise: RGB σ = 
 
 1. **Segmentation.** Pixels are classified in HSV: fruit (hue 21–34), leaves (hue 36–90) and orange leaf tips (hue 4–18,
    high saturation). Leaf-coloured pixels on the robot's own carrier are removed.
-2. **Back-projection.** A classified pixel $(u, v)$ with depth $z$ becomes the world point
+2. **Back-projection.** A classified pixel $`(u, v)`$ with depth $`z`$ becomes the world point
 
-$$
-P = R_c\,z\,K^{-1}\begin{bmatrix}u & v & 1\end{bmatrix}^{\top} + t_c ,
-$$
+   ```math
+   P = R_c\,z\,K^{-1}\begin{bmatrix}u & v & 1\end{bmatrix}^{\top} + t_c ,
+   ```
 
-   with camera intrinsics $K$ and the calibrated camera pose $(R_c, t_c)$. Points are voxelised (12 mm) and clustered by
+   with camera intrinsics $`K`$ and the calibrated camera pose $`(R_c, t_c)`$. Points are voxelised (12 mm) and clustered by
    single linkage (radius 35 mm, at least 25 points).
-3. **Fruit model.** Each fruit cluster is fitted with a cylinder: centre $c$, unit axis $\hat u$ (tilt ≤ 18°), radius
-   $r \in [6.0, 7.6]$ cm, height $h \in [14, 22]$ cm. Clusters whose centre lies outside 0.48–0.84 m above the ground are
+3. **Fruit model.** Each fruit cluster is fitted with a cylinder: centre $`c`$, unit axis $`\hat u`$ (tilt ≤ 18°), radius
+   $`r \in [6.0, 7.6]`$ cm, height $`h \in [14, 22]`$ cm. Clusters whose centre lies outside 0.48–0.84 m above the ground are
    rejected (yellow leaf tips near the soil were otherwise detected as fruit).
 4. **Survey with early stop.** Detections from several views (B1–B2: up to 8 views on a 0.40 m circle; B3: 3 views) are
    merged. Only a detection with confidence ≥ 0.85 ends the survey; weaker detections were found to be leaf tips or
@@ -141,27 +141,27 @@ sees and lets a learned model pick among the candidates.
 
 ### 3.1 Max-clearance line on known obstacles (Stage A)
 
-The end point $N$ (the *nucleus*) is surrounded by three nested cubes with half-sizes 0.1, 0.2 and 0.3 m. On each face
+The end point $`N`$ (the *nucleus*) is surrounded by three nested cubes with half-sizes 0.1, 0.2 and 0.3 m. On each face
 3–5 obstacle points are scattered over the three layers (a 3 × 3 grid per layer, at most one point per cell, jitter
-0.35 of a cell). Candidate enter points $S$ lie on a regular grid of the outer cube faces. The face opposite the robot
-and the bottom face are excluded. For obstacle points $p_i$ with radius $r_i$, the clearance of the segment
-$\overline{SN}$ is
+0.35 of a cell). Candidate enter points $`S`$ lie on a regular grid of the outer cube faces. The face opposite the robot
+and the bottom face are excluded. For obstacle points $`p_i`$ with radius $`r_i`$, the clearance of the segment
+$`\overline{SN}`$ is
 
-$$
+```math
 C(S) = \min_i \Big(\operatorname{dist}\big(p_i, \overline{SN}\big) - r_i\Big),
 \qquad
 \operatorname{dist}(p, \overline{SN}) = \big\lVert p - (N + t^{\ast}(S - N)) \big\rVert,\quad
 t^{\ast} = \operatorname{clip}\!\left(\frac{(p - N)\cdot(S - N)}{\lVert S - N\rVert^2}, 0, 1\right),
-$$
+```
 
-and the enter point is $E = S^{\ast} = \arg\max_S C(S)$, restricted to candidates the arm can reach. The distance is
+and the enter point is $`E = S^{\ast} = \arg\max_S C(S)`$, restricted to candidates the arm can reach. The distance is
 taken to the **segment**, not the infinite line, because the tool only travels between the two points. The same rule
 was applied to leaf points in A4–A5, with the grasp point as nucleus.
 
 ![Max-clearance selection](images/fig04_max_clearance_selection.png)
 
 *Figure 4. The max-clearance rule on one sampled constellation (26 obstacle points). (a) Candidate start points
-coloured by $C(S)$; the selected line (black) ends at the nucleus = end point. (b) Best clearance per allowed face.*
+coloured by $`C(S)`$; the selected line (black) ends at the nucleus = end point. (b) Best clearance per allowed face.*
 
 ### 3.2 Camera-based candidates (Stage B)
 
@@ -171,14 +171,14 @@ fruit:
 * **Shoulder** = fruit pixels between the fruit centre and the crown base. Parts of the fruit hidden by leaves are not
   fruit pixels, so they can never be chosen.
 * **Window** = image bounding box of the shoulder, divided into an 8 × 8 grid. Every cell with at least 3 shoulder pixels
-  gives one end-point candidate $X$ (the median of its 3-D points).
-* **Enter point.** For an outward direction $\hat d$ with elevation in {−10°, 0°, 10°, 20°, 30°, 40°},
-  $E = X + L\,\hat d$ with $L = 0.20$ m; $E$ must project inside the window.
-* **Camera clearance score** of a candidate line, with perceived leaf points $p_i$ of radius $\rho = 15$ mm:
+  gives one end-point candidate $`X`$ (the median of its 3-D points).
+* **Enter point.** For an outward direction $`\hat d`$ with elevation in {−10°, 0°, 10°, 20°, 30°, 40°},
+  $`E = X + L\,\hat d`$ with $`L = 0.20`$ m; $`E`$ must project inside the window.
+* **Camera clearance score** of a candidate line, with perceived leaf points $`p_i`$ of radius $`\rho = 15`$ mm:
 
-$$
+```math
 C(E, X) = \min_i \Big(\operatorname{dist}\big(p_i, \overline{EX}\big) - \rho\Big) + 0.5\,\min_i\big(\lVert p_i - X\rVert - \rho\big).
-$$
+```
 
 The first term is the Stage A segment clearance; the second keeps the end point itself away from leaves.
 
@@ -188,34 +188,34 @@ The camera score is computed from an incomplete point cloud: leaves behind the f
 A denoising diffusion model is therefore trained to propose end points whose *true* clearance is large, from what the
 camera sees.
 
-**Representation.** The action is the normalised window position of the end point, $x_0 = (u, v) \in [-1, 1]^2$. The
+**Representation.** The action is the normalised window position of the end point, $`x_0 = (u, v) \in [-1, 1]^2`$. The
 context is a 6 × 8 × 8 feature grid (shoulder occupancy, camera clearance of the end point, camera line clearance,
 height on the shoulder, leaf-pixel occupancy, valid-candidate mask) plus 5 global features (window size, shoulder ratio,
 fruit radius, camera elevation).
 
-**Forward process** (DDPM, $T = 50$ steps, cosine schedule $\bar\alpha_t = f(t)/f(0)$,
-$f(t) = \cos^2\!\big(\tfrac{t/T + s}{1+s}\tfrac{\pi}{2}\big)$, $s = 0.008$):
+**Forward process** (DDPM, $`T = 50`$ steps, cosine schedule $`\bar\alpha_t = f(t)/f(0)`$,
+$`f(t) = \cos^2\!\big(\tfrac{t/T + s}{1+s}\tfrac{\pi}{2}\big)`$, $`s = 0.008`$):
 
-$$
+```math
 x_t = \sqrt{\bar\alpha_t}\,x_0 + \sqrt{1 - \bar\alpha_t}\,\epsilon,\qquad \epsilon \sim \mathcal{N}(0, I).
-$$
+```
 
-**Training loss** of the noise predictor $\epsilon_\theta$ conditioned on the context $c$:
+**Training loss** of the noise predictor $`\epsilon_\theta`$ conditioned on the context $`c`$:
 
-$$
+```math
 \mathcal{L}(\theta) = \mathbb{E}_{x_0, t, \epsilon}\Big[\big\lVert \epsilon - \epsilon_\theta(x_t, t, c)\big\rVert^2\Big].
-$$
+```
 
-**Sampling** (deterministic DDIM with 10 steps $t_k$, $\bar\alpha_{t_{K+1}} = 1$):
+**Sampling** (deterministic DDIM with 10 steps $`t_k`$, $`\bar\alpha_{t_{K+1}} = 1`$):
 
-$$
+```math
 \hat x_0 = \operatorname{clip}\!\left(\frac{x_{t_k} - \sqrt{1 - \bar\alpha_{t_k}}\,\epsilon_\theta(x_{t_k}, t_k, c)}{\sqrt{\bar\alpha_{t_k}}}, -1.2, 1.2\right),
 \qquad
 x_{t_{k+1}} = \sqrt{\bar\alpha_{t_{k+1}}}\,\hat x_0 + \sqrt{1 - \bar\alpha_{t_{k+1}}}\,\epsilon_\theta(x_{t_k}, t_k, c).
-$$
+```
 
 **Network.** A small CNN encodes the grid (6 → 32 → 32 → 16 channels, 3 × 3, 3 × 3, 1 × 1 kernels, ReLU); an MLP maps the
-encoding and the global features to a 128-D context; the noise predictor is an MLP (inputs $x_t$, a 32-D sinusoidal
+encoding and the global features to a 128-D context; the noise predictor is an MLP (inputs $`x_t`$, a 32-D sinusoidal
 time embedding and the context; three hidden layers of 256 with SiLU; 2 outputs).
 
 **Labels.** Training views were generated around 900 realistic plants (6 views each, camera radius 0.45–0.85 m,
@@ -224,8 +224,8 @@ clearance computed from the full leaf geometry; every candidate within 90 % of t
 the model learns a multi-modal distribution of good end points. Training: 400 epochs, batch 256, learning rate 1e-3,
 4367 training / 485 validation views.
 
-**Decision.** At run time $K = 24$ samples are drawn and each votes for its nearest candidate. Candidates with at least
-$\max(2, 0.12K)$ votes form the **proposal set**. Inside it, the line with the largest camera clearance comes first, then
+**Decision.** At run time $`K = 24`$ samples are drawn and each votes for its nearest candidate. Candidates with at least
+$`\max(2, 0.12K)`$ votes form the **proposal set**. Inside it, the line with the largest camera clearance comes first, then
 the remaining cells by votes. The ranked top 8 lines go to the planner, which takes the first one that validates.
 
 ![Diffusion decision](images/fig05_diffusion_end_point_decision.png)
@@ -260,22 +260,22 @@ trajectories (2.0 rad/s, 7.5 rad/s², slower within 6 cm of a perceived fruit).
 
 ### 4.2 Damped least-squares inverse kinematics
 
-For a target pose $(p^{\ast}, q^{\ast})$ (position and unit quaternion), the solver iterates from the current joint
+For a target pose $`(p^{\ast}, q^{\ast})`$ (position and unit quaternion), the solver iterates from the current joint
 state:
 
-$$
+```math
 e = \begin{bmatrix} p^{\ast} - p(q) \\ w_r\,\operatorname{Log}\big(q^{\ast} \otimes q(q)^{-1}\big) \end{bmatrix},
 \qquad
 \Delta q = J_w^{\top}\big(J_w J_w^{\top} + \lambda^2 I\big)^{-1} e_w ,
-$$
+```
 
-with rotation weight $w_r = 0.5$, a step limit of 0.3 rad, up to 60 iterations and tolerances of 0.1 mm and 0.002 rad.
-The damping grows near singularities, measured by the manipulability $w = \sqrt{\det(J_p J_p^{\top})}$:
+with rotation weight $`w_r = 0.5`$, a step limit of 0.3 rad, up to 60 iterations and tolerances of 0.1 mm and 0.002 rad.
+The damping grows near singularities, measured by the manipulability $`w = \sqrt{\det(J_p J_p^{\top})}`$:
 
-$$
+```math
 \lambda = \lambda_{\min} + (\lambda_{\max} - \lambda_{\min})\,\operatorname{clip}\!\left(1 - \frac{w}{w_0}, 0, 1\right),
 \qquad \lambda_{\min} = 10^{-4},\ \lambda_{\max} = 0.05,\ w_0 = 0.02 .
-$$
+```
 
 The solution is clamped to the joint limits and unwrapped to the configuration closest to the current one.
 
@@ -285,20 +285,20 @@ The solution is clamped to the joint limits and unwrapped to the configuration c
 
 ### 5.1 Markov decision process
 
-The learned phases are an episodic MDP $(\mathcal{S}, \mathcal{A}, P, r, \gamma)$ with a control period of 20 ms.
+The learned phases are an episodic MDP $`(\mathcal{S}, \mathcal{A}, P, r, \gamma)`$ with a control period of 20 ms.
 In Stage B the learned correction acts only in the phases *approach to the enter point* and *line enter point → end point*.
 
-**Action.** $a = [a_p, a_\theta] \in [-1, 1]^6$. The commanded tool motion per step is
+**Action.** $`a = [a_p, a_\theta] \in [-1, 1]^6`$. The commanded tool motion per step is
 
-$$
+```math
 \Delta p = a_p\,\Delta p_{\max},\qquad \Delta\theta = a_\theta\,\Delta\theta_{\max},\qquad
 \Delta p_{\max} = 0.05\ \text{m},\ \Delta\theta_{\max} = 0.08\ \text{rad}.
-$$
+```
 
-The target orientation is integrated in the world frame, $q^{\ast}_{t+1} = \exp(\Delta\theta) \otimes q^{\ast}_t$, and kept
+The target orientation is integrated in the world frame, $`q^{\ast}_{t+1} = \exp(\Delta\theta) \otimes q^{\ast}_t`$, and kept
 within a cone around the nominal orientation (30° in A1–A3; opened in the harvesting missions, where the gripper must
-turn). The IK solution is limited to $\lvert q_{\text{cmd}} - q\rvert \le 0.25$ rad per joint and step. In Stage B the
-joint servos have a rate of $k_s = 10\ \text{s}^{-1}$, so $\lVert a_p\rVert = 1$ corresponds to a hand speed of 0.5 m/s.
+turn). The IK solution is limited to $`\lvert q_{\text{cmd}} - q\rvert \le 0.25`$ rad per joint and step. In Stage B the
+joint servos have a rate of $`k_s = 10\ \text{s}^{-1}`$, so $`\lVert a_p\rVert = 1`$ corresponds to a hand speed of 0.5 m/s.
 
 **Observation.** One fixed layout of **63 values** is used in every mission of both stages, so the network weights can
 be transferred directly. Fields that a mission does not use are held constant.
@@ -308,52 +308,52 @@ be transferred directly. Fields that a mission does not use are held constant.
 | `rel_target` | 3 | active target − TCP position | A1 |
 | `q`, `qd` | 6 + 6 | joint angles and velocities | A1 |
 | `tcp_pos`, `tcp_rot6` | 3 + 6 | TCP position; first two columns of the TCP rotation matrix (continuous 6-D rotation representation) | A1 |
-| `manip` | 1 | manipulability $w$ (singularity indicator) | A1 |
+| `manip` | 1 | manipulability $`w`$ (singularity indicator) | A1 |
 | `prev_action` | 6 | previous executed action | A1 |
-| `time_left` | 1 | $1 - t/T_{\max}$ (remaining step budget) | A1 |
+| `time_left` | 1 | $`1 - t/T_{\max}`$ (remaining step budget) | A1 |
 | `phase` | 1 | Stage A: 0 = to enter point, 1 = along the line (A5: 2 pull back, 3 lift); Stage B: approach, line, retreat, lift, transport | A2 |
 | `path_dir`, `cross_track_vec`, `path_progress` | 3 + 3 + 1 | unit vector of the current route piece, vector to its closest point, progress 0…1 | A2 |
 | `obs_rel`, `obs_dist` | 12 + 4 | vectors and distances from the closest robot point to the 4 nearest obstacles (harvesting: leaf points; the 4th slot carries the wrist force) | A3 |
 | `min_clearance` | 1 | minimum clearance of the whole robot body | A3 |
 | `ref_action` | 6 | the reference controller's action in this state | A1 |
 
-**Normalisation.** Running mean and variance give $\hat o = \operatorname{clip}\big((o - \mu)/\sqrt{\sigma^2 + \epsilon}, -10, 10\big)$
-with $\epsilon = 10^{-8}$. After a transfer the statistics are frozen, because updating them would shift the inputs of
+**Normalisation.** Running mean and variance give $`\hat o = \operatorname{clip}\big((o - \mu)/\sqrt{\sigma^2 + \epsilon}, -10, 10\big)`$
+with $`\epsilon = 10^{-8}`$. After a transfer the statistics are frozen, because updating them would shift the inputs of
 the transferred policy. The statistics are stored inside the exported policy graph.
 
 ### 5.2 Reference controller
 
 The reference controller is a saturated proportional controller towards a look-ahead point of the validated route:
 
-$$
+```math
 a_{\text{ref},p} = \operatorname{sat}_1\!\left(\frac{k\,(p_{\text{tgt}} - p)}{\Delta p_{\max}}\right),\qquad
 \operatorname{sat}_1(v) = \begin{cases} v & \lVert v\rVert \le 1 \\ v / \lVert v\rVert & \text{otherwise} \end{cases},\qquad k = 0.8,
-$$
+```
 
-where $p_{\text{tgt}}$ is the way-point two steps ahead of the closest one (approach) or the active target (line). In
+where $`p_{\text{tgt}}`$ is the way-point two steps ahead of the closest one (approach) or the active target (line). In
 A1–A3 the reference does not rotate the gripper. In the harvesting missions it also turns towards the planned grasp
-orientation, $a_{\text{ref},\theta} = \operatorname{sat}_1\!\big(k_\theta \operatorname{Log}(q_{\text{des}} \otimes q^{\ast -1})/\Delta\theta_{\max}\big)$, and
+orientation, $`a_{\text{ref},\theta} = \operatorname{sat}_1\!\big(k_\theta \operatorname{Log}(q_{\text{des}} \otimes q^{\ast -1})/\Delta\theta_{\max}\big)`$, and
 Stage B scales its speed per phase (approach 1.4, line 0.7, pull-out 0.5, lift 1.0, transport 1.4).
 
 ### 5.3 Residual composition, gates and progress floor
 
 The executed action is
 
-$$
+```math
 a = \operatorname{clip}\big(a_{\text{ref}} + g \cdot s \odot a_{\text{RL}},\ -1,\ 1\big),
-$$
+```
 
-with residual scale $s = [0.5, 0.5, 0.5, s_\theta, s_\theta, s_\theta]$ (so the correction changes the tool position by at
-most 2.5 cm per step; $s_\theta$ = 1.0 in A1–A2, 0 in A3, 0.5 in A4–A5 and Stage B). The gate $g \in [0, 1]$ fades the
+with residual scale $`s = [0.5, 0.5, 0.5, s_\theta, s_\theta, s_\theta]`$ (so the correction changes the tool position by at
+most 2.5 cm per step; $`s_\theta`$ = 1.0 in A1–A2, 0 in A3, 0.5 in A4–A5 and Stage B). The gate $`g \in [0, 1]`$ fades the
 correction out where a wrong correction is most costly:
 
-$$
+```math
 g_{\text{obstacle}} = \operatorname{clip}\!\left(\frac{c_{\min} - 0.02}{0.08 - 0.02}, 0, 1\right)\ \text{(A3)},\qquad
 g_{\text{target}} = \operatorname{clip}\!\left(\frac{d_X - 0.04}{0.10 - 0.04}, 0, 1\right)\ \text{(A4–A5, Stage B)},
-$$
+```
 
-where $c_{\min}$ is the minimum robot–obstacle clearance and $d_X$ the distance to the end point. A **progress floor**
-keeps the component of $a_p$ along $a_{\text{ref},p}$ at least $\rho\,\lVert a_{\text{ref},p}\rVert$ ($\rho = 0.4$ in A4–A5,
+where $`c_{\min}`$ is the minimum robot–obstacle clearance and $`d_X`$ the distance to the end point. A **progress floor**
+keeps the component of $`a_p`$ along $`a_{\text{ref},p}`$ at least $`\rho\,\lVert a_{\text{ref},p}\rVert`$ ($`\rho = 0.4`$ in A4–A5,
 0.25 in Stage B): the correction can steer and slow down but cannot stop the arm.
 
 ![Gate, floor, governor](images/fig06_gate_floor_governor.png)
@@ -362,15 +362,15 @@ keeps the component of $a_p$ along $a_{\text{ref},p}$ at least $\rho\,\lVert a_{
 
 ### 5.4 Safety layers (Stage B)
 
-**Speed governor.** With $d$ the distance from the tool to the nearest fruit the camera has perceived,
+**Speed governor.** With $`d`$ the distance from the tool to the nearest fruit the camera has perceived,
 
-$$
+```math
 v_{\max}(d) = v_{\text{near}} + (v_{\text{free}} - v_{\text{near}})\,\operatorname{clip}\!\left(\frac{d - d_{\text{near}}}{d_{\text{free}} - d_{\text{near}}}, 0, 1\right),
 \qquad
 a_p \leftarrow a_p \cdot \min\!\left(1, \frac{v_{\max}(d)}{\lVert a_p\rVert\,\Delta p_{\max}\,k_s}\right),
-$$
+```
 
-with $v_{\text{near}} = 0.06$ m/s at $d_{\text{near}} = 2$ cm and $v_{\text{free}} = 0.60$ m/s beyond $d_{\text{free}} = 25$ cm. It applies
+with $`v_{\text{near}} = 0.06`$ m/s at $`d_{\text{near}} = 2`$ cm and $`v_{\text{free}} = 0.60`$ m/s beyond $`d_{\text{free}} = 25`$ cm. It applies
 to the reference action and to the composed action alike.
 
 **Safety shield.** Before a step is executed, the commanded posture is checked for contact and safety margin; motion
@@ -383,55 +383,55 @@ fruit is given up.
 switches the residual off for the rest of that phase.
 
 **Predictive leaf guard.** Leaves are chains of bodies with spring hinges. A hinge bent beyond 0.9 rad counts as leaf
-damage; the root hinge bent beyond $\theta_{\text{uproot}} = 1.15$ rad means the leaf is torn out. With $\theta_r$ the bend
-of the most loaded leaf root and $\dot\theta_r$ its change per step, a guard with fraction $f$ trips when
+damage; the root hinge bent beyond $`\theta_{\text{uproot}} = 1.15`$ rad means the leaf is torn out. With $`\theta_r`$ the bend
+of the most loaded leaf root and $`\dot\theta_r`$ its change per step, a guard with fraction $`f`$ trips when
 
-$$
+```math
 \theta_r + n_{\text{lead}}\,\max(0, \dot\theta_r) > f\,\theta_{\text{uproot}},\qquad n_{\text{lead}} = 5,
-$$
+```
 
-with $f = 0.85$ on the line (back out to the enter point, new camera view, plan again), $f = 0.75$ during view moves (stop,
-retrace, skip that view) and $f = 0.80$ while carrying (stop, re-plan the carry with the other pull-out direction).
+with $`f = 0.85`$ on the line (back out to the enter point, new camera view, plan again), $`f = 0.75`$ during view moves (stop,
+retrace, skip that view) and $`f = 0.80`$ while carrying (stop, re-plan the carry with the other pull-out direction).
 
 ### 5.5 Reward
 
-All learned phases share four dense terms, with $d_t$ the distance from the TCP to the active target:
+All learned phases share four dense terms, with $`d_t`$ the distance from the TCP to the active target:
 
-$$
+```math
 r^{\text{common}}_t = \underbrace{-0.02}_{\text{time}} \;\underbrace{-\,w_d\,d_t}_{\text{distance}}
 \;+\;\underbrace{20\,(d_{t-1} - d_t)}_{\text{progress}} \;\underbrace{-\,0.05\,\lVert a_t - a_{t-1}\rVert^2}_{\text{smoothness}},
 \qquad w_d = 0.5\ \text{(Stage A)},\ 0.05\ \text{(Stage B)}.
-$$
+```
 
 The progress term is symmetric (moving away costs as much as moving closer earns), so it adds no bias. In Stage B the
 distance weight was reduced tenfold because the distance term summed to about −80 per successful episode and a failed
 episode could return more than a successful one.
 
-From A2 on, a cross-track term $-150\,\min(d_\perp, 0.08)^2$ penalises the distance $d_\perp$ to the line (capped so the
-value loss cannot explode). The harvesting missions add an orientation term $-0.5\,\theta_{\text{err}}$ on the line and a
+From A2 on, a cross-track term $`-150\,\min(d_\perp, 0.08)^2`$ penalises the distance $`d_\perp`$ to the line (capped so the
+value loss cannot explode). The harvesting missions add an orientation term $`-0.5\,\theta_{\text{err}}`$ on the line and a
 leaf-energy term
 
-$$
+```math
 -0.15\,\min\!\big(E_{\text{leaf}}/0.1\ \text{J},\ 3\big),\qquad E_{\text{leaf}} = \tfrac{1}{2}\sum_j k_j\,\theta_j^2 ,
-$$
+```
 
-with $\theta_j$ the deflection of leaf hinge $j$ and $k_j$ its stiffness.
+with $`\theta_j`$ the deflection of leaf hinge $`j`$ and $`k_j`$ its stiffness.
 
-**Potential-based obstacle shaping (A3).** With $c$ the minimum robot–obstacle clearance,
+**Potential-based obstacle shaping (A3).** With $`c`$ the minimum robot–obstacle clearance,
 
-$$
+```math
 \Phi(c) = \begin{cases} -k_\Phi\left(\dfrac{1}{c + \varepsilon} - \dfrac{1}{d_{\text{safe}} + \varepsilon}\right) & c < d_{\text{safe}} \\ 0 & \text{otherwise} \end{cases},
 \qquad F_t = \gamma\,\Phi(c_{t+1}) - \Phi(c_t),
-$$
+```
 
-with $k_\Phi = 0.3$, $\varepsilon = 0.01$ m and $d_{\text{safe}} = 0.12$ m. Potential-based shaping does not change the optimal
+with $`k_\Phi = 0.3`$, $`\varepsilon = 0.01`$ m and $`d_{\text{safe}} = 0.12`$ m. Potential-based shaping does not change the optimal
 policy, and unlike a per-step penalty it does not make standing still near an obstacle cheaper than moving.
 
 **Sparse terms.**
 
 | Mission | Events |
 |---|---|
-| A1 | success $+10 \cdot 1.2^{\ell}$ (curriculum level $\ell$); self/floor contact −10 and terminate |
+| A1 | success $`+10 \cdot 1.2^{\ell}`$ (curriculum level $`\ell`$); self/floor contact −10 and terminate |
 | A2 | enter point reached +5; success +20 |
 | A3 | as A2, success +40; obstacle contact −100 and terminate |
 | A4 | timeout −20; plant or leaf damage −50; success +40 |
@@ -440,38 +440,38 @@ policy, and unlike a per-step penalty it does not make standing still near an ob
 
 ### 5.6 Soft Actor-Critic and the modifications used here
 
-SAC maximises the entropy-regularised return $\mathbb{E}\big[\sum_t \gamma^t (r_t + \alpha\,\mathcal{H}(\pi(\cdot\mid s_t)))\big]$.
-The actor is a tanh-squashed Gaussian, $\tilde a = \tanh(\mu_\phi(s) + \sigma_\phi(s)\,\xi)$, $\xi \sim \mathcal{N}(0, I)$. Two
-critics $Q_{\psi_1}, Q_{\psi_2}$ with slowly updated target copies $\bar\psi_i$ are trained on replayed transitions:
+SAC maximises the entropy-regularised return $`\mathbb{E}\big[\sum_t \gamma^t (r_t + \alpha\,\mathcal{H}(\pi(\cdot\mid s_t)))\big]`$.
+The actor is a tanh-squashed Gaussian, $`\tilde a = \tanh(\mu_\phi(s) + \sigma_\phi(s)\,\xi)`$, $`\xi \sim \mathcal{N}(0, I)`$. Two
+critics $`Q_{\psi_1}, Q_{\psi_2}`$ with slowly updated target copies $`\bar\psi_i`$ are trained on replayed transitions:
 
-$$
+```math
 y = r + \gamma(1 - d)\Big(\min_i Q_{\bar\psi_i}(s', a') - \alpha \log \pi_\phi(a'\mid s')\Big),\quad a' \sim \pi_\phi(\cdot\mid s'),
 \qquad
 J_Q(\psi_i) = \tfrac{1}{2}\,\mathbb{E}\big[(Q_{\psi_i}(s, a) - y)^2\big],
-$$
+```
 
-$$
+```math
 \bar\psi_i \leftarrow \tau\,\psi_i + (1 - \tau)\,\bar\psi_i,\qquad \tau = 0.005 .
-$$
+```
 
 The actor loss adds two terms to the standard one:
 
-$$
+```math
 J_\pi(\phi) = \mathbb{E}\Big[\alpha \log \pi_\phi(\tilde a\mid s) - \min_i Q_{\psi_i}(s, \tilde a)\Big]
 \;+\; \lambda_\mu\,\mathbb{E}\big[\mu_\phi(s)^2\big]
 \;+\; w_t\,\overline{\lvert Q\rvert}\;\mathbb{E}\big[(\tanh\mu_\phi(s) - a_{\text{prior}}(s))^2\big].
-$$
+```
 
-* **Mean regulariser** $\lambda_\mu = 10^{-3}$ keeps the pre-tanh mean out of the saturated region, where gradients vanish.
-* **Actor anchor** (TD3+BC style, scaled by the mean absolute Q value) pulls the actor towards $a_{\text{prior}}$: either
+* **Mean regulariser** $`\lambda_\mu = 10^{-3}`$ keeps the pre-tanh mean out of the saturated region, where gradients vanish.
+* **Actor anchor** (TD3+BC style, scaled by the mean absolute Q value) pulls the actor towards $`a_{\text{prior}}`$: either
   the zero correction ("do what the reference does") or the policy inherited from the previous mission. Its weight
-  $w_t$ decays linearly to a floor that is never zero; without the floor the critic's over-estimation was exploited as
+  $`w_t`$ decays linearly to a floor that is never zero; without the floor the critic's over-estimation was exploited as
   soon as the anchor vanished (measured in Stage A: Q rose from 26 to 71 while success fell from 90 % to 10 %).
-* **Critic warm-up.** After a transfer, the actor **and** the temperature $\alpha$ are frozen for the first steps and
-  only the critics learn the new task. Freezing $\alpha$ as well fixed a collapse in A3: the automatically tuned
+* **Critic warm-up.** After a transfer, the actor **and** the temperature $`\alpha`$ are frozen for the first steps and
+  only the critics learn the new task. Freezing $`\alpha`$ as well fixed a collapse in A3: the automatically tuned
   temperature grew from 0.033 to 6.8 while the actor was frozen, and success fell from 63 % to 0 %.
-* **Temperature.** Either tuned with $J(\alpha) = \mathbb{E}[-\alpha(\log\pi(a\mid s) + \bar{\mathcal{H}})]$ towards a target
-  entropy $\bar{\mathcal{H}}$ and capped at $\alpha_{\max}$, or fixed.
+* **Temperature.** Either tuned with $`J(\alpha) = \mathbb{E}[-\alpha(\log\pi(a\mid s) + \bar{\mathcal{H}})]`$ towards a target
+  entropy $`\bar{\mathcal{H}}`$ and capped at $`\alpha_{\max}`$, or fixed.
 * **Update-to-data ratio.** One gradient step per vector step of several parallel environments (0.25 with 4
   environments in Stage A) was more stable and about 3× faster than one step per transition.
 
@@ -479,7 +479,7 @@ $$
 |---|---|---|
 | Networks (actor, both critics) | MLP [256, 256], ReLU | same (required for transfer) |
 | Learning rate (Adam) | 3e-4 (A1), 1e-4 (A2), 1.5e-4 (A3–A5) | 1.5e-4 |
-| Discount $\gamma$, Polyak $\tau$ | 0.995, 0.005 | 0.99, 0.005 |
+| Discount $`\gamma`$, Polyak $`\tau`$ | 0.995, 0.005 | 0.99, 0.005 |
 | Replay buffer | 1 M transitions (250 k per environment) | 300 k |
 | Batch size, learning starts | 256, 5000 | 256, 2000 (B3: 800) |
 | Train frequency / gradient steps | 1 / 1 per vector step (4 envs) | 2 / 1 |
@@ -491,7 +491,7 @@ $$
 
 ### 5.7 Curriculum and weight transfer
 
-* **Adaptive precision (A1).** Level $\ell$ uses the threshold $\delta_\ell \in \{10, 5, 2, 1, 0.5\}$ cm. The level advances
+* **Adaptive precision (A1).** Level $`\ell`$ uses the threshold $`\delta_\ell \in \lbrace 10, 5, 2, 1, 0.5 \rbrace`$ cm. The level advances
   when the success rate over the last 100 episodes reaches 85 % (checked every 50 episodes, at least 100 episodes per
   level). Only the success bonus grows with the level, so the dense terms keep their scale.
 * **Difficulty levels (A3–A5).** The same rule with 80 % (55 % in A5). A3 shrinks the obstacle-free corridor
@@ -499,9 +499,9 @@ $$
   leaves.
 * **Single task definition.** Evaluation always uses the last curriculum level of the training configuration, so
   training and evaluation numbers measure the same task.
-* **Weight transfer.** All missions share the network shapes and the observation layout. For every input index $j$
+* **Weight transfer.** All missions share the network shapes and the observation layout. For every input index $`j`$
   that becomes active, or changes meaning, in the new mission, the first-layer weights of the actor and both critics are
-  set to zero, $W^{(1)}_{:, j} \leftarrow 0$, so the transferred policy initially ignores it. Its normalisation statistics
+  set to zero, $`W^{(1)}_{:, j} \leftarrow 0`$, so the transferred policy initially ignores it. Its normalisation statistics
   are estimated from 8000 observations of the new mission. When the target is the zero correction, the residual output
   layer is restarted near zero, so behaviour starts exactly at the reference controller.
 
@@ -510,7 +510,7 @@ $$
 *Figure 7. One A3 test episode at the final level (18 obstacles, unseen seed). (a) Scene with the executed tool path.
 (b) Tool path of the reference alone (dashed, hidden under the blue path) and with the residual correction; both succeed,
 the correction in 151 instead of 157 steps. (c) Distance to the active target (the jump marks the switch from the enter
-point to the end point), minimum body–obstacle clearance and the obstacle gate $g$, which fades the correction out as the
+point to the end point), minimum body–obstacle clearance and the obstacle gate $`g`$, which fades the correction out as the
 clearance falls below 80 mm.*
 
 ---
@@ -532,12 +532,12 @@ clearance falls below 80 mm.*
 | Release and verify | open above the crate; the fruit must stay inside for 0.6 s | fruit dropped / missed the crate |
 
 **Stem model.** The fruit is attached to a stem link with torsion, bending and tension springs (torsion
-$k_t = 1.0$ N m/rad, bending 40 N m/rad, tension 4000 N/m). The stem snaps when
+$`k_t = 1.0`$ N m/rad, bending 40 N m/rad, tension 4000 N/m). The stem snaps when
 
-$$
+```math
 \tau_{\text{twist}} = k_t\,\varphi > \tau_{\text{break}} \in [0.8, 2.0]\ \text{N m}\quad(\varphi \approx 46\text{–}115^\circ)
 \qquad\text{or}\qquad F_{\text{pull}} > F_{\text{break}} \in [60, 120]\ \text{N},
-$$
+```
 
 and every plant draws its own break values; a sideways push only bends the stem. (A5 used a simpler rule: a random
 twist of 45–120° and a break decision from a grip-torque threshold.)
@@ -571,22 +571,22 @@ twist of 45–120° and a break decision from a grip-torque threshold.)
 
 | Level | Output |
 |---|---|
-| Every 20 ms | joint position targets $q_{\text{cmd}} = q + \operatorname{clip}(\operatorname{IK}(p + \Delta p, q^{\ast}_{t+1}) - q, -0.25, 0.25)$ |
+| Every 20 ms | joint position targets $`q_{\text{cmd}} = q + \operatorname{clip}(\operatorname{IK}(p + \Delta p, q^{\ast}_{t+1}) - q, -0.25, 0.25)`$ |
 | Every line | enter point, end point, validated route, decision record (candidates, votes, scores) |
 | Every episode | outcome and failure reason, reward components, fruits in the crate, phase timings |
-| Training | the deployable policy: the deterministic actor $a_{\text{RL}} = \tanh(\mu_\phi(\hat o))$ with the normalisation inside the graph, exported in ONNX format; replay of every evaluation as an interactive 3-D recording |
+| Training | the deployable policy: the deterministic actor $`a_{\text{RL}} = \tanh(\mu_\phi(\hat o))`$ with the normalisation inside the graph, exported in ONNX format; replay of every evaluation as an interactive 3-D recording |
 
 The deployed controller must reproduce the full loop around the exported actor: build the same 63-value observation,
 run the same reference controller and gates, the same IK and send joint targets at 20 ms.
 
 **Time per fruit (Stage B).** For every harvested fruit
 
-$$
+```math
 T_{\text{observe}\to\text{crate}} = (t_{\text{placed}} - t_{\text{start}}) + c_{\text{compute}},
-$$
+```
 
-where $t_{\text{start}}$ is the simulated time at which the robot starts to look for this fruit, $t_{\text{placed}}$ the
-time the fruit is verified in the crate and $c_{\text{compute}}$ the real computing time spent on perception, decision and
+where $`t_{\text{start}}`$ is the simulated time at which the robot starts to look for this fruit, $`t_{\text{placed}}`$ the
+time the fruit is verified in the crate and $`c_{\text{compute}}`$ the real computing time spent on perception, decision and
 planning for it. *Seconds per fruit* of a whole run is (simulated time + computing) / fruits in the crate and also
 contains driving, returning home and time lost on failed fruits.
 
@@ -600,16 +600,16 @@ contains driving, returning home and time lost on failed fruits.
   training decisions (Stage A: 50 fixed evaluation scenarios during training, 100 validation scenarios to choose between
   the best and the final model, 200 test scenarios, and a further independent set for the comparisons below; Stage B:
   validation seeds per mission and separate test seeds and field seeds).
-* **Paired comparison.** "Reference alone" ($a_{\text{RL}} = 0$) and "reference + RL" run on the *same* scenarios. The
+* **Paired comparison.** "Reference alone" ($`a_{\text{RL}} = 0`$) and "reference + RL" run on the *same* scenarios. The
   difference is judged on the scenarios where exactly one of them succeeds, with a two-sided exact sign test.
 * **Checkpoint selection (Stage B).** Every evaluation interval the policy runs on fixed validation episodes; the best
   checkpoint (highest fruit rate, ties by mean return) is exported, not the last one. The reference alone runs on the
   same episodes before training, as the bar the policy has to beat.
-* **Confidence interval.** 95 % Wilson score interval for a success proportion $\hat p = k/n$:
+* **Confidence interval.** 95 % Wilson score interval for a success proportion $`\hat p = k/n`$:
 
-$$
+```math
 \frac{\hat p + \frac{z^2}{2n} \pm z\sqrt{\frac{\hat p(1-\hat p)}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}},\qquad z = 1.96 .
-$$
+```
 
 * **Robustness conditions (Stage A).** Domain randomisation (payload, gravity) with observation noise; in A4–A5 also a
   perfect leaf map versus a simulated planning error (30 % of leaves missed, 2 cm noise).
