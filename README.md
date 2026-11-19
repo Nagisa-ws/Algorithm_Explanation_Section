@@ -113,7 +113,12 @@ report the estimation error. The camera image carries simulated noise: RGB σ = 
 2. **Back-projection.** A classified pixel $`(u, v)`$ with depth $`z`$ becomes the world point
 
    ```math
-   P = R_c\,z\,K^{-1}\begin{bmatrix}u & v & 1\end{bmatrix}^{\top} + t_c ,
+   P = R_c\,z\,K^{-1}
+   \begin{bmatrix}
+   u \\
+   v \\
+   1
+   \end{bmatrix} + t_c ,
    ```
 
    with camera intrinsics $`K`$ and the calibrated camera pose $`(R_c, t_c)`$. Points are voxelised (12 mm) and clustered by
@@ -148,10 +153,10 @@ and the bottom face are excluded. For obstacle points $`p_i`$ with radius $`r_i`
 $`\overline{SN}`$ is
 
 ```math
-C(S) = \min_i \Big(\operatorname{dist}\big(p_i, \overline{SN}\big) - r_i\Big),
+C(S) = \min_i \Big(\mathrm{dist}\big(p_i, \overline{SN}\big) - r_i\Big),
 \qquad
-\operatorname{dist}(p, \overline{SN}) = \big\lVert p - (N + t^{\ast}(S - N)) \big\rVert,\quad
-t^{\ast} = \operatorname{clip}\!\left(\frac{(p - N)\cdot(S - N)}{\lVert S - N\rVert^2}, 0, 1\right),
+\mathrm{dist}(p, \overline{SN}) = \big\lVert p - (N + t^{\ast}(S - N)) \big\rVert,\quad
+t^{\ast} = \mathrm{clip}\!\left(\frac{(p - N)\cdot(S - N)}{\lVert S - N\rVert^2}, 0, 1\right),
 ```
 
 and the enter point is $`E = S^{\ast} = \arg\max_S C(S)`$, restricted to candidates the arm can reach. The distance is
@@ -177,7 +182,7 @@ fruit:
 * **Camera clearance score** of a candidate line, with perceived leaf points $`p_i`$ of radius $`\rho = 15`$ mm:
 
 ```math
-C(E, X) = \min_i \Big(\operatorname{dist}\big(p_i, \overline{EX}\big) - \rho\Big) + 0.5\,\min_i\big(\lVert p_i - X\rVert - \rho\big).
+C(E, X) = \min_i \Big(\mathrm{dist}\big(p_i, \overline{EX}\big) - \rho\Big) + 0.5\,\min_i\big(\lVert p_i - X\rVert - \rho\big).
 ```
 
 The first term is the Stage A segment clearance; the second keeps the end point itself away from leaves.
@@ -209,7 +214,7 @@ x_t = \sqrt{\bar\alpha_t}\,x_0 + \sqrt{1 - \bar\alpha_t}\,\epsilon,\qquad \epsil
 **Sampling** (deterministic DDIM with 10 steps $`t_k`$, $`\bar\alpha_{t_{K+1}} = 1`$):
 
 ```math
-\hat x_0 = \operatorname{clip}\!\left(\frac{x_{t_k} - \sqrt{1 - \bar\alpha_{t_k}}\,\epsilon_\theta(x_{t_k}, t_k, c)}{\sqrt{\bar\alpha_{t_k}}}, -1.2, 1.2\right),
+\hat x_0 = \mathrm{clip}\!\left(\frac{x_{t_k} - \sqrt{1 - \bar\alpha_{t_k}}\,\epsilon_\theta(x_{t_k}, t_k, c)}{\sqrt{\bar\alpha_{t_k}}}, -1.2, 1.2\right),
 \qquad
 x_{t_{k+1}} = \sqrt{\bar\alpha_{t_{k+1}}}\,\hat x_0 + \sqrt{1 - \bar\alpha_{t_{k+1}}}\,\epsilon_\theta(x_{t_k}, t_k, c).
 ```
@@ -264,7 +269,10 @@ For a target pose $`(p^{\ast}, q^{\ast})`$ (position and unit quaternion), the s
 state:
 
 ```math
-e = \begin{bmatrix} p^{\ast} - p(q) \\ w_r\,\operatorname{Log}\big(q^{\ast} \otimes q(q)^{-1}\big) \end{bmatrix},
+e = \begin{bmatrix}
+p^{\ast} - p(q) \\
+w_r\,\mathrm{Log}\big(q^{\ast} \otimes q(q)^{-1}\big)
+\end{bmatrix},
 \qquad
 \Delta q = J_w^{\top}\big(J_w J_w^{\top} + \lambda^2 I\big)^{-1} e_w ,
 ```
@@ -273,7 +281,7 @@ with rotation weight $`w_r = 0.5`$, a step limit of 0.3 rad, up to 60 iterations
 The damping grows near singularities, measured by the manipulability $`w = \sqrt{\det(J_p J_p^{\top})}`$:
 
 ```math
-\lambda = \lambda_{\min} + (\lambda_{\max} - \lambda_{\min})\,\operatorname{clip}\!\left(1 - \frac{w}{w_0}, 0, 1\right),
+\lambda = \lambda_{\min} + (\lambda_{\max} - \lambda_{\min})\,\mathrm{clip}\!\left(1 - \frac{w}{w_0}, 0, 1\right),
 \qquad \lambda_{\min} = 10^{-4},\ \lambda_{\max} = 0.05,\ w_0 = 0.02 .
 ```
 
@@ -317,7 +325,7 @@ be transferred directly. Fields that a mission does not use are held constant.
 | `min_clearance` | 1 | minimum clearance of the whole robot body | A3 |
 | `ref_action` | 6 | the reference controller's action in this state | A1 |
 
-**Normalisation.** Running mean and variance give $`\hat o = \operatorname{clip}\big((o - \mu)/\sqrt{\sigma^2 + \epsilon}, -10, 10\big)`$
+**Normalisation.** Running mean and variance give $`\hat o = \mathrm{clip}\big((o - \mu)/\sqrt{\sigma^2 + \epsilon}, -10, 10\big)`$
 with $`\epsilon = 10^{-8}`$. After a transfer the statistics are frozen, because updating them would shift the inputs of
 the transferred policy. The statistics are stored inside the exported policy graph.
 
@@ -326,13 +334,13 @@ the transferred policy. The statistics are stored inside the exported policy gra
 The reference controller is a saturated proportional controller towards a look-ahead point of the validated route:
 
 ```math
-a_{\text{ref},p} = \operatorname{sat}_1\!\left(\frac{k\,(p_{\text{tgt}} - p)}{\Delta p_{\max}}\right),\qquad
-\operatorname{sat}_1(v) = \begin{cases} v & \lVert v\rVert \le 1 \\ v / \lVert v\rVert & \text{otherwise} \end{cases},\qquad k = 0.8,
+a_{\text{ref},p} = \mathrm{sat}_1\!\left(\frac{k\,(p_{\text{tgt}} - p)}{\Delta p_{\max}}\right),\qquad
+\mathrm{sat}_1(v) = \begin{cases} v & \lVert v\rVert \le 1 \\ v / \lVert v\rVert & \text{otherwise} \end{cases},\qquad k = 0.8,
 ```
 
 where $`p_{\text{tgt}}`$ is the way-point two steps ahead of the closest one (approach) or the active target (line). In
 A1–A3 the reference does not rotate the gripper. In the harvesting missions it also turns towards the planned grasp
-orientation, $`a_{\text{ref},\theta} = \operatorname{sat}_1\!\big(k_\theta \operatorname{Log}(q_{\text{des}} \otimes q^{\ast -1})/\Delta\theta_{\max}\big)`$, and
+orientation, $`a_{\text{ref},\theta} = \mathrm{sat}_1\!\big(k_\theta \mathrm{Log}(q_{\text{des}} \otimes q^{\ast -1})/\Delta\theta_{\max}\big)`$, and
 Stage B scales its speed per phase (approach 1.4, line 0.7, pull-out 0.5, lift 1.0, transport 1.4).
 
 ### 5.3 Residual composition, gates and progress floor
@@ -340,7 +348,7 @@ Stage B scales its speed per phase (approach 1.4, line 0.7, pull-out 0.5, lift 1
 The executed action is
 
 ```math
-a = \operatorname{clip}\big(a_{\text{ref}} + g \cdot s \odot a_{\text{RL}},\ -1,\ 1\big),
+a = \mathrm{clip}\big(a_{\text{ref}} + g \cdot s \odot a_{\text{RL}},\ -1,\ 1\big),
 ```
 
 with residual scale $`s = [0.5, 0.5, 0.5, s_\theta, s_\theta, s_\theta]`$ (so the correction changes the tool position by at
@@ -348,12 +356,12 @@ most 2.5 cm per step; $`s_\theta`$ = 1.0 in A1–A2, 0 in A3, 0.5 in A4–A5 and
 correction out where a wrong correction is most costly:
 
 ```math
-g_{\text{obstacle}} = \operatorname{clip}\!\left(\frac{c_{\min} - 0.02}{0.08 - 0.02}, 0, 1\right)\ \text{(A3)},\qquad
-g_{\text{target}} = \operatorname{clip}\!\left(\frac{d_X - 0.04}{0.10 - 0.04}, 0, 1\right)\ \text{(A4–A5, Stage B)},
+g_{\text{obstacle}} = \mathrm{clip}\!\left(\frac{c_{\min} - 0.02}{0.08 - 0.02}, 0, 1\right)\ \text{(A3)},\qquad
+g_{\text{target}} = \mathrm{clip}\!\left(\frac{d_X - 0.04}{0.10 - 0.04}, 0, 1\right)\ \text{(A4–A5, Stage B)},
 ```
 
 where $`c_{\min}`$ is the minimum robot–obstacle clearance and $`d_X`$ the distance to the end point. A **progress floor**
-keeps the component of $`a_p`$ along $`a_{\text{ref},p}`$ at least $`\rho\,\lVert a_{\text{ref},p}\rVert`$ ($`\rho = 0.4`$ in A4–A5,
+keeps the component of $`a_p`$ along $`a_{\text{ref},p}`$ at least $`\rho\,\lVert a_{\text{ref},p}\rVert`$ (with $`\rho = 0.4`$ in A4–A5,
 0.25 in Stage B): the correction can steer and slow down but cannot stop the arm.
 
 ![Gate, floor, governor](images/fig06_gate_floor_governor.png)
@@ -365,7 +373,7 @@ keeps the component of $`a_p`$ along $`a_{\text{ref},p}`$ at least $`\rho\,\lVer
 **Speed governor.** With $`d`$ the distance from the tool to the nearest fruit the camera has perceived,
 
 ```math
-v_{\max}(d) = v_{\text{near}} + (v_{\text{free}} - v_{\text{near}})\,\operatorname{clip}\!\left(\frac{d - d_{\text{near}}}{d_{\text{free}} - d_{\text{near}}}, 0, 1\right),
+v_{\max}(d) = v_{\text{near}} + (v_{\text{free}} - v_{\text{near}})\,\mathrm{clip}\!\left(\frac{d - d_{\text{near}}}{d_{\text{free}} - d_{\text{near}}}, 0, 1\right),
 \qquad
 a_p \leftarrow a_p \cdot \min\!\left(1, \frac{v_{\max}(d)}{\lVert a_p\rVert\,\Delta p_{\max}\,k_s}\right),
 ```
@@ -571,7 +579,7 @@ twist of 45–120° and a break decision from a grip-torque threshold.)
 
 | Level | Output |
 |---|---|
-| Every 20 ms | joint position targets $`q_{\text{cmd}} = q + \operatorname{clip}(\operatorname{IK}(p + \Delta p, q^{\ast}_{t+1}) - q, -0.25, 0.25)`$ |
+| Every 20 ms | joint position targets $`q_{\text{cmd}} = q + \mathrm{clip}(\mathrm{IK}(p + \Delta p, q^{\ast}_{t+1}) - q, -0.25, 0.25)`$ |
 | Every line | enter point, end point, validated route, decision record (candidates, votes, scores) |
 | Every episode | outcome and failure reason, reward components, fruits in the crate, phase timings |
 | Training | the deployable policy: the deterministic actor $`a_{\text{RL}} = \tanh(\mu_\phi(\hat o))`$ with the normalisation inside the graph, exported in ONNX format; replay of every evaluation as an interactive 3-D recording |
@@ -600,7 +608,7 @@ contains driving, returning home and time lost on failed fruits.
   training decisions (Stage A: 50 fixed evaluation scenarios during training, 100 validation scenarios to choose between
   the best and the final model, 200 test scenarios, and a further independent set for the comparisons below; Stage B:
   validation seeds per mission and separate test seeds and field seeds).
-* **Paired comparison.** "Reference alone" ($`a_{\text{RL}} = 0`$) and "reference + RL" run on the *same* scenarios. The
+* **Paired comparison.** "Reference alone" (that is, $`a_{\text{RL}} = 0`$) and "reference + RL" run on the *same* scenarios. The
   difference is judged on the scenarios where exactly one of them succeeds, with a two-sided exact sign test.
 * **Checkpoint selection (Stage B).** Every evaluation interval the policy runs on fixed validation episodes; the best
   checkpoint (highest fruit rate, ties by mean return) is exported, not the last one. The reference alone runs on the
@@ -608,7 +616,7 @@ contains driving, returning home and time lost on failed fruits.
 * **Confidence interval.** 95 % Wilson score interval for a success proportion $`\hat p = k/n`$:
 
 ```math
-\frac{\hat p + \frac{z^2}{2n} \pm z\sqrt{\frac{\hat p(1-\hat p)}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}},\qquad z = 1.96 .
+\frac{\hat p + \frac{z^2}{2n} \pm z\left(\frac{\hat p(1-\hat p)}{n} + \frac{z^2}{4n^2}\right)^{1/2}}{1 + \frac{z^2}{n}},\qquad z = 1.96 .
 ```
 
 * **Robustness conditions (Stage A).** Domain randomisation (payload, gravity) with observation noise; in A4–A5 also a
