@@ -744,5 +744,3 @@ Preprints (not peer reviewed)
 
 13. T. Haarnoja, A. Zhou, K. Hartikainen, G. Tucker, S. Ha, J. Tan, V. Kumar, H. Zhu, A. Gupta, P. Abbeel, S. Levine. Soft actor-critic algorithms and applications. arXiv preprint arXiv:1812.05905, 2018.
 14. T. Silver, K. Allen, J. Tenenbaum, L. Kaelbling. Residual policy learning. arXiv preprint arXiv:1812.06298, 2018.
-# Algorithm_Explanation_Section
-# Algorithm_Explanation_Section
